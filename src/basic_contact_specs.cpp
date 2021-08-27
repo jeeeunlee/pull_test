@@ -4,13 +4,13 @@
 
 BodyFramePointContactSpec::BodyFramePointContactSpec(
                             RobotSystem* robot, 
-                            int _link_idx, 
-                            double _mu): ContactSpec(robot, 3) {
+                            int _link_idx): ContactSpec(robot, 3) {
     my_utils::pretty_constructor(3, "Body Frame Point Contact Spec");
 
+    contact_orientation_ = Eigen::MatrixXd::Identity(3,3);
     f_adhesion_max_ = 0.0;
     link_idx_ = _link_idx;
-    setFrictionCoeff(_mu);
+    setFrictionCoeff(0.0);
     updateContactSpec();
 }
 
@@ -23,7 +23,8 @@ bool BodyFramePointContactSpec::_UpdateUf() {
 
 bool BodyFramePointContactSpec::_UpdateMatA() {
     MatA_ = Eigen::MatrixXd::Zero(6, dim_contact_);
-    Eigen::MatrixXd R_wb = robot_->getBodyNodeIsometry(link_idx_).linear();
+    // Eigen::MatrixXd R_wb = robot_->getBodyNodeIsometry(link_idx_).linear();
+    Eigen::MatrixXd R_wb = contact_orientation_;
     Eigen::VectorXd p_wb = robot_->getBodyNodeIsometry(link_idx_).translation();
     
     Eigen::MatrixXd p_skew = my_utils::skew3(p_wb);

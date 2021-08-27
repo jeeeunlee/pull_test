@@ -13,7 +13,8 @@ class MagnetoContactContainer{
         void updateContactList(int new_contact, int next_moving_contact);
         void updateContactSpec(int foot,
                                 const double& _fmax,
-                                const double& _mu);
+                                const double& _mu,
+                                const Eigen::MatrixXd& _ori);
         ContactSpec* getContact(int foot);
 
         std::vector <ContactSpec*> contact_list_;

@@ -31,7 +31,7 @@ void PullTestInterface::getCommand(void* _sensor_data, void* _command_data) {
     // update robot_
     updateRobotSystem(data);    
 
-    // update contact_container_ (maxpullforce, mu, new/next contact)  
+    // update contact_container_ (maxpullforce, mu, ori, new/next contact)  
     updateContactSpec(data);
 
     // compute pull force
@@ -42,16 +42,20 @@ void PullTestInterface::updateContactSpec(PullTestSensorData* data){
 
     contact_container_->updateContactSpec(MagnetoFoot::AL, 
                         data->f_pull_specs[MagnetoFoot::AL], 
-                        data->friction_specs[MagnetoFoot::AL]);
+                        data->friction_specs[MagnetoFoot::AL],
+                        data->orientation_specs[MagnetoFoot::AL]);
     contact_container_->updateContactSpec(MagnetoFoot::AR, 
                         data->f_pull_specs[MagnetoFoot::AR], 
-                        data->friction_specs[MagnetoFoot::AR]);
+                        data->friction_specs[MagnetoFoot::AR],
+                        data->orientation_specs[MagnetoFoot::AR]);
     contact_container_->updateContactSpec(MagnetoFoot::BL, 
                         data->f_pull_specs[MagnetoFoot::BL], 
-                        data->friction_specs[MagnetoFoot::BL]);
+                        data->friction_specs[MagnetoFoot::BL],
+                        data->orientation_specs[MagnetoFoot::BL]);
     contact_container_->updateContactSpec(MagnetoFoot::BR, 
                         data->f_pull_specs[MagnetoFoot::BR], 
-                        data->friction_specs[MagnetoFoot::BR]);
+                        data->friction_specs[MagnetoFoot::BR],
+                        data->orientation_specs[MagnetoFoot::BR]);
 
     int new_contact = data->new_contact;
     int next_moving_foot = data->next_moving_foot;

@@ -95,7 +95,7 @@ void PullForceEstimator::_buildUMatrix(){
     U_ = - contact_container_->contact_list_[0]->getRFConstraintMtx();
     dim_rows = U_.rows();
     dim_cols = U_.cols(); 
-    for(int i(1); i<contact_container_->contact_list_.size(); ++i) {
+    for(uint i(1); i<contact_container_->contact_list_.size(); ++i) {
         U_i = - contact_container_->contact_list_[i]->getRFConstraintMtx();
         dim_rows_i = U_i.rows();
         dim_cols_i = U_i.cols();
@@ -117,14 +117,14 @@ void PullForceEstimator::_updateConvexHull() {
     // double description convex hull
     Polyhedron poly_1, poly_2;
     // 1. face(Uf_)->span(Uf_S=Vf_)
-    bool b_poly_U = poly_1.setHrep(U_, Eigen::VectorXd::Zero(U_.rows()));
+    poly_1.setHrep(U_, Eigen::VectorXd::Zero(U_.rows()));
     Eigen::MatrixXd V = (poly_1.vrep().first).transpose();
     my_utils::pretty_print(V, std::cout, "V");
 
     // 2. span(A_stance * Vf_)->face(U_st)
     // poly.vrep() return VrepXd:(first:Matrix V, second:Vector index(0:Ray, 1:vertex)) 
     Eigen::MatrixXd Vst = Astance_ * V;
-    bool b_poly_Vst = poly_2.setVrep( Vst.transpose(), Eigen::VectorXd::Zero( Vst.cols()) );
+    poly_2.setVrep( Vst.transpose(), Eigen::VectorXd::Zero( Vst.cols()) );
     Uav_ = poly_2.hrep().first;
 
 }

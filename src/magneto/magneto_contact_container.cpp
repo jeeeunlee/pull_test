@@ -4,15 +4,14 @@
 
 MagnetoContactContainer::MagnetoContactContainer(RobotSystem* robot)
 {
-    double friction_coeff = 0.5;
     alfoot_contact_ = new BodyFramePointContactSpec(
-        robot, MagnetoBodyNode::AL_foot_link, friction_coeff); 
+        robot, MagnetoBodyNode::AL_foot_link); 
     blfoot_contact_ = new BodyFramePointContactSpec(
-        robot, MagnetoBodyNode::BL_foot_link, friction_coeff);     
+        robot, MagnetoBodyNode::BL_foot_link);     
     arfoot_contact_ = new BodyFramePointContactSpec(
-        robot, MagnetoBodyNode::AR_foot_link, friction_coeff); 
+        robot, MagnetoBodyNode::AR_foot_link); 
     brfoot_contact_ = new BodyFramePointContactSpec(
-        robot, MagnetoBodyNode::BR_foot_link, friction_coeff);
+        robot, MagnetoBodyNode::BR_foot_link);
 
     foot_list_ = {MagnetoBodyNode::AL_foot_link, 
                 MagnetoBodyNode::BL_foot_link,
@@ -34,10 +33,14 @@ void MagnetoContactContainer::updateContactList(int new_contact, int next_moving
 
 void MagnetoContactContainer::updateContactSpec(int foot,
                                 const double& _fmax,
-                                const double& _mu) {
+                                const double& _mu,
+                                const Eigen::MatrixXd& _ori) {
     auto contact = getContact(foot);
     ((BodyFramePointContactSpec*)contact)->setMaxAdhesionForce(_fmax);
-    ((BodyFramePointContactSpec*)contact)->setFrictionCoeff(_mu);
+    ((BodyFramePointContactSpec*)contact)->setFrictionCoeff(_mu);    
+    ((BodyFramePointContactSpec*)contact)->setContactOrientation(_ori);
+
+    contact->updateContactSpec();
 }
 
 
