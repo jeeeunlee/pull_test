@@ -21,6 +21,8 @@ set(CMAKE_MODULE_PATH
       ${CMAKE_MODULE_PATH} 
       ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Eigen3)
+find_package(DART 6.9 REQUIRED COMPONENTS utils-urdf gui-osg CONFIG)
+
 # find_package(MOSEK)
 
 
@@ -103,11 +105,15 @@ include_directories(
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_INCLUDE_DIR}
   ${EIGEN3_INCLUDE_DIR}
+  ${DART_INCLUDE_DIRS}
   ${MYYAML_INCLUDE_DIR}
   ${my_cdd_INCLUDE_DIR}
 )
 
 FILE(GLOB_RECURSE sources "*.cpp")
+
+FILE(GLOB runfile "src/magneto/main.cpp")
+
 
 FILE(GLOB io_headers "include/pull_test/my_utils/io/*.hpp")
 FILE(GLOB math_headers "include/pull_test/my_utils/math/*.hpp")
@@ -120,18 +126,25 @@ FILE(GLOB pull_test_headers "include/pull_test/*.hpp")
 ## Declare a C++ library
 #message("${sources}")
 #message("${headers}")
+message("=================================")
+message("${DART_LIBRARIES}")
+message("${DART_INCLUDE_DIRS}")
 add_library(pull_test SHARED  ${sources}
                             ${headers})
 
 target_include_directories(pull_test PUBLIC   
                     ${PROJECT_INCLUDE_DIR}
                     ${MYYAML_INCLUDE_DIR}
-                    ${my_cdd_INCLUDE_DIR})
+                    ${my_cdd_INCLUDE_DIR}
+                    ${DART_INCLUDE_DIRS})
 
-target_link_libraries(pull_test 
-                    my_yaml
-                    my_cdd
-                    ${EIGEN_LIBRARIES})
+target_link_libraries(pull_test ${DART_LIBRARIES}
+                                ${EIGEN_LIBRARIES}
+                                my_yaml
+                                my_cdd)
+
+add_executable(run_pull_test ${runfile})
+target_link_libraries(run_pull_test pull_test)
 
 #############
 ## Install ##
@@ -142,6 +155,12 @@ message("[pull_test]INSTALL_LIB_DIR=")
 message("${CATKIN_PACKAGE_LIB_DESTINATION}")
 message("[pull_test]INSTALL_INCLUDE_DIR=")
 message("${CATKIN_PACKAGE_INCLUDE_DESTINATION}")
+message("[pull_test]CATKIN_PACKAGE_BIN_DESTINATION=")
+message("${CATKIN_PACKAGE_BIN_DESTINATION}")
+
+install(TARGETS run_pull_test
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 install(TARGETS pull_test DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}")
 
@@ -196,6 +215,6 @@ install(FILES ${pull_test_headers} DESTINATION "${CATKIN_PACKAGE_INCLUDE_DESTINA
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-SET (THIS_COM ${CMAKE_SOURCE_DIR}/../ )
+SET (THIS_COM ${CMAKE_SOURCE_DIR}/ )
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/config.h.cmake ${PROJECT_SOURCE_DIR}/Configuration.h)
 install(FILES ${PROJECT_SOURCE_DIR}/Configuration.h DESTINATION "${CATKIN_PACKAGE_INCLUDE_DESTINATION}")
