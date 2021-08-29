@@ -4,6 +4,7 @@
 
 MagnetoContactContainer::MagnetoContactContainer(RobotSystem* robot)
 {
+    my_utils::pretty_constructor(1, "MagnetoContactContainer");
     alfoot_contact_ = new BodyFramePointContactSpec(
         robot, MagnetoBodyNode::AL_foot_link); 
     blfoot_contact_ = new BodyFramePointContactSpec(
@@ -13,21 +14,21 @@ MagnetoContactContainer::MagnetoContactContainer(RobotSystem* robot)
     brfoot_contact_ = new BodyFramePointContactSpec(
         robot, MagnetoBodyNode::BR_foot_link);
 
-    foot_list_ = {MagnetoBodyNode::AL_foot_link, 
-                MagnetoBodyNode::BL_foot_link,
-                MagnetoBodyNode::AR_foot_link,
-                MagnetoBodyNode::BR_foot_link};
+    foot_list_ = {MagnetoFoot::AL,
+                    MagnetoFoot::AR,
+                    MagnetoFoot::BL,
+                    MagnetoFoot::BR};
 }
 
-void MagnetoContactContainer::updateContactList(int new_contact, int next_moving_contact){
+void MagnetoContactContainer::updateContactList(int new_contact, int next_moving_contact) {
     contact_list_.clear();
     // add new contact first    
     contact_list_.push_back(getContact(new_contact));
-
     // add the rest of contact
     for(auto &foot : foot_list_){
-        if(foot != new_contact && foot != next_moving_contact)
+        if(foot != new_contact && foot != next_moving_contact){
             contact_list_.push_back(getContact(foot));
+        }            
     }
 }
 

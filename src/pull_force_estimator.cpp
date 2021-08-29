@@ -9,10 +9,12 @@
 
 PullForceEstimator::PullForceEstimator(RobotSystem* robot,
                 MagnetoContactContainer* contact_container) {
+    my_utils::pretty_constructor(1, "PullForceEstimator");
     robot_ = robot;
     contact_container_ = contact_container;
     gravity_ << 0.0, 0.0, -9.81;
     mass_ = robot_->getRobotMass();  
+    std::cout << " robot mass = " << mass_ << std::endl;
 }
 
 void PullForceEstimator::getPullForceThreshold(void* cmd){    
@@ -20,13 +22,19 @@ void PullForceEstimator::getPullForceThreshold(void* cmd){
     // A = [A1 A2 A3], where Ai = [[pi]xRi; Ri]
     // U = diag(U1 U2 U3)        
     // V = Vrep(U), Uav_ = Hrep(AV)
-    
+
     _buildAstanceMatrix(); // update Astance_
-    my_utils::pretty_print(Astance_, std::cout, "Astance_");
+    // my_utils::pretty_print(Astance_, std::cout, "Astance_");
     _buildUMatrix(); // update U_
-    my_utils::pretty_print(U_, std::cout, "U_");
-    _updateConvexHull(); // update Uav_(U_,Astance_), where Uav_=Hrep(AV) & V=vrep(U_)    
-    my_utils::pretty_print(Uav_, std::cout, "Uav_");
+    // my_utils::pretty_print(U_, std::cout, "U_");
+    if(!_updateConvexHull()) // update Uav_(U_,Astance_), where Uav_=Hrep(AV) & V=vrep(U_)  
+    {
+        ((PullTestCommandData*)cmd)->pull_force_threshold = 0.0;
+        std::cout << "no available double description method under the given condition" << std::endl;
+        return;
+    }  
+    // my_utils::pretty_print(Uav_, std::cout, "Uav_");
+
     _updateGravityWrench(); // update Fg_
     // my_utils::pretty_print(Fg_, std::cout, "Fg_");
 
@@ -42,11 +50,11 @@ void PullForceEstimator::getPullForceThreshold(void* cmd){
         fm_23(3*(i-1)+2) = ((BodyFramePointContactSpec*)contact_container_->contact_list_[i])->getMaxAdhesionForce();
     }
     Eigen::VectorXd rhs_vec = -Uav_*Fg_ - u_23*fm_23;
-    my_utils::pretty_print(u_23, std::cout, "u_23");
-    my_utils::pretty_print(fm_23, std::cout, "fm_23");
-    std::cout<<" findMinForcePullOnly : u1 fm1 >= rhs_vec " << std::endl;
-    my_utils::pretty_print(u_1, std::cout, "u_1");
-    my_utils::pretty_print(rhs_vec, std::cout, "rhs_vec");
+    // my_utils::pretty_print(u_23, std::cout, "u_23");
+    // my_utils::pretty_print(fm_23, std::cout, "fm_23");
+    // std::cout<<" findMinForcePullOnly : u1 fm1 >= rhs_vec " << std::endl;
+    // my_utils::pretty_print(u_1, std::cout, "u_1");
+    // my_utils::pretty_print(rhs_vec, std::cout, "rhs_vec");
 
     // check max
     double _eps = 1e-3;
@@ -61,9 +69,9 @@ void PullForceEstimator::getPullForceThreshold(void* cmd){
         }
     } // fpull_min < fpull < fpull_max
     // double min = *min_element(fpull_min.begin(), fpull_min.end());
-    std::cout <<"fpull_max size: " << fpull_max.size() << ", fpull_min size: "<<fpull_min.size()<<std::endl;
+    // std::cout <<"fpull_max size: " << fpull_max.size() << ", fpull_min size: "<<fpull_min.size()<<std::endl;
     double f_threshold = *min_element(fpull_max.begin(), fpull_max.end());
-    std::cout<<" min value: " << f_threshold << std::endl;
+    // std::cout<<" min value: " << f_threshold << std::endl;
     
     ((PullTestCommandData*)cmd)->pull_force_threshold = f_threshold;
 }
@@ -80,9 +88,9 @@ void PullForceEstimator::_updateGravityWrench() {
 void PullForceEstimator::_buildAstanceMatrix(){
     int n_contact =  contact_container_->contact_list_.size();
     Astance_ = Eigen::MatrixXd::Zero(6, 3*n_contact);
-    for(int i(0); i<n_contact; ++i) {        
-        Astance_.block(0,3*i,6,3) = ((BodyFramePointContactSpec*)
-                                contact_container_->contact_list_[i])->getConfigurationMtx();    
+    for(int i(0); i<n_contact; ++i) { 
+        Astance_.block(0,3*i,6,3) = ((BodyFramePointContactSpec*)contact_container_
+                ->contact_list_[i])->getConfigurationMtx();  
     }    
 }
 
@@ -109,22 +117,27 @@ void PullForceEstimator::_buildUMatrix(){
 }
  
 
-void PullForceEstimator::_updateConvexHull() {
+bool PullForceEstimator::_updateConvexHull() {
     // check empty
     if(U_.rows() == 0 || U_.cols() == 0)
-        return;
+        return false;
 
     // double description convex hull
     Polyhedron poly_1, poly_2;
     // 1. face(Uf_)->span(Uf_S=Vf_)
-    poly_1.setHrep(U_, Eigen::VectorXd::Zero(U_.rows()));
-    Eigen::MatrixXd V = (poly_1.vrep().first).transpose();
-    my_utils::pretty_print(V, std::cout, "V");
+    if( !poly_1.setHrep(U_, Eigen::VectorXd::Zero(U_.rows())) )
+        return false;
+
+    Eigen::MatrixXd V = (poly_1.vrep().first).transpose();    
 
     // 2. span(A_stance * Vf_)->face(U_st)
     // poly.vrep() return VrepXd:(first:Matrix V, second:Vector index(0:Ray, 1:vertex)) 
     Eigen::MatrixXd Vst = Astance_ * V;
-    poly_2.setVrep( Vst.transpose(), Eigen::VectorXd::Zero( Vst.cols()) );
+    // my_utils::pretty_print(U_, std::cout, "U_");
+    // my_utils::pretty_print(V, std::cout, "V");
+    // my_utils::pretty_print(Astance_, std::cout, "Astance_");
+    // my_utils::pretty_print(Vst, std::cout, "Vst");
+    if (!poly_2.setVrep( Vst.transpose(), Eigen::VectorXd::Zero( Vst.cols()) ))
+        return false;
     Uav_ = poly_2.hrep().first;
-
 }

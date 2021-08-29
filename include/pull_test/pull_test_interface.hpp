@@ -74,9 +74,10 @@ class PullTestCommandData {
 class PullTestInterface {
     public:
         PullTestInterface();
-        ~PullTestInterface();        
+        ~PullTestInterface();    
 
-        void getCommand(void* _sensor_data, void* _command_data);
+        void getCommand(PullTestSensorData* _sensor_data, 
+                        PullTestCommandData* _command_data);
     
     private:
         void updateContactSpec(PullTestSensorData* data);

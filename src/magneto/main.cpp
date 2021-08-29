@@ -5,25 +5,35 @@
 int main(int argc, char** argv) {  
     /* interface constructors */
     // default contact spec
-    double fpull = 30.; // adhesion force at each foot 
+    double fpull = -50.; // adhesion force at each foot 
     double mu = 0.5; // static friction coefficient
-    double r(0.0), p(0.0), y(0.0); // base orientation
+    double r(0.0), p(1.0), y(0.0); // base&foot orientation [rad]
     Eigen::Quaternion<double> q =
-                Eigen::AngleAxisd(r*M_PI, Eigen::Vector3d::UnitX())
-                * Eigen::AngleAxisd(p*M_PI, Eigen::Vector3d::UnitY())
-                * Eigen::AngleAxisd(y*M_PI, Eigen::Vector3d::UnitZ());
-    Eigen::MatrixXd base_ori = q.matrix();
-    PullTestSensorData* sensor_data_ = new PullTestSensorData(base_ori, fpull, mu);
+                Eigen::AngleAxisd(r, Eigen::Vector3d::UnitX())
+                * Eigen::AngleAxisd(p, Eigen::Vector3d::UnitY())
+                * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitZ());
+    Eigen::MatrixXd foot_ori = q.matrix();
+    PullTestSensorData* sensor_data_ = new PullTestSensorData(foot_ori, fpull, mu);
     PullTestCommandData* command_ = new PullTestCommandData();
     PullTestInterface* interface_ = new PullTestInterface();
 
     /* required information */
     // robot configuration
     sensor_data_-> q = Eigen::VectorXd::Zero(Magneto::n_adof);
-    // sensor_data_-> virtual_q = Eigen::VectorXd::Zero(Magneto::n_vdof);
+    double femur_joint_init = 1./10.*M_PI_2; // -1./10.*M_PI_2;
+    double tibia_joint_init = -11./10.*M_PI_2; // -9./10.*M_PI_2;
+    sensor_data_-> q << 0.0, femur_joint_init, tibia_joint_init,
+                        0.0, femur_joint_init, tibia_joint_init, 
+                        0.0, femur_joint_init, tibia_joint_init, 
+                        0.0, femur_joint_init, tibia_joint_init;
+    sensor_data_-> virtual_q = Eigen::VectorXd::Zero(Magneto::n_vdof);
+    sensor_data_-> virtual_q[3] = y;
+    sensor_data_-> virtual_q[4] = p;
+    sensor_data_-> virtual_q[5] = r;
+
     // known contact spec for existent contacts
-    sensor_data_-> f_pull_specs[MagnetoFoot::BR] = 50.;
-    sensor_data_-> friction_specs[MagnetoFoot::BR] = 0.3;
+    sensor_data_-> f_pull_specs[MagnetoFoot::AL] = -50.;
+    sensor_data_-> friction_specs[MagnetoFoot::AL] = 0.3;
     // contact planning
     sensor_data_-> new_contact = MagnetoFoot::AL;
     sensor_data_-> next_moving_foot = MagnetoFoot::AR;

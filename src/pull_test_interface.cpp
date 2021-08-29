@@ -2,6 +2,7 @@
 #include <math.h>
 #include <string>
 #include <stdio.h>
+
 #include <pull_test/pull_test_interface.hpp>
 #include <pull_test/pull_force_estimator.hpp>
 
@@ -22,24 +23,31 @@ PullTestInterface::PullTestInterface() {
 
     // set pull force estimator
     pull_force_estimator_ = new PullForceEstimator(robot_, contact_container_);
+
+    // initialize
+    curr_config_ = Eigen::VectorXd::Zero(Magneto::n_dof);
+    curr_qdot_ = Eigen::VectorXd::Zero(Magneto::n_dof);
 }
 
-void PullTestInterface::getCommand(void* _sensor_data, void* _command_data) {
-    PullTestSensorData* data = ((PullTestSensorData*)_sensor_data);
-    PullTestCommandData* cmd = ((PullTestCommandData*)_command_data);
+PullTestInterface::~PullTestInterface() {
+    delete robot_;
+    delete contact_container_;
+    delete pull_force_estimator_;
+}  
 
+void PullTestInterface::getCommand(PullTestSensorData* _sensor_data, 
+                        PullTestCommandData* _command_data) {
     // update robot_
-    updateRobotSystem(data);    
+    updateRobotSystem(_sensor_data);    
 
     // update contact_container_ (maxpullforce, mu, ori, new/next contact)  
-    updateContactSpec(data);
+    updateContactSpec(_sensor_data);
 
     // compute pull force
-    pull_force_estimator_->getPullForceThreshold(cmd);
+    pull_force_estimator_->getPullForceThreshold(_command_data);
 }
 
 void PullTestInterface::updateContactSpec(PullTestSensorData* data){
-
     contact_container_->updateContactSpec(MagnetoFoot::AL, 
                         data->f_pull_specs[MagnetoFoot::AL], 
                         data->friction_specs[MagnetoFoot::AL],

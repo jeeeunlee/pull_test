@@ -18,14 +18,15 @@ BodyFramePointContactSpec::~BodyFramePointContactSpec() {}
 
 bool BodyFramePointContactSpec::_UpdateUf() {  
     // Uf isn't changing under the fixed friction coeff  
+    setUf(mu_); 
     return true;
 }
 
 bool BodyFramePointContactSpec::_UpdateMatA() {
     MatA_ = Eigen::MatrixXd::Zero(6, dim_contact_);
-    // Eigen::MatrixXd R_wb = robot_->getBodyNodeIsometry(link_idx_).linear();
+    // Eigen::MatrixXd R_wb = robot_->getBodyNodeCoMIsometry(link_idx_).linear();
     Eigen::MatrixXd R_wb = contact_orientation_;
-    Eigen::VectorXd p_wb = robot_->getBodyNodeIsometry(link_idx_).translation();
+    Eigen::VectorXd p_wb = robot_->getBodyNodeCoMIsometry(link_idx_).translation();
     
     Eigen::MatrixXd p_skew = my_utils::skew3(p_wb);
             

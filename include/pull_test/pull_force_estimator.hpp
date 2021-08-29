@@ -19,7 +19,7 @@ class PullForceEstimator {
 
     private:
         void _updateGravityWrench();
-        void _updateConvexHull();
+        bool _updateConvexHull();
         void _buildAstanceMatrix();
         void _buildUMatrix();
 
