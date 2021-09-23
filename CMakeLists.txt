@@ -88,6 +88,7 @@ find_package(DART 6.9 REQUIRED COMPONENTS utils-urdf gui-osg CONFIG)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  LIBRARIES pull_test
+ INCLUDE_DIR include
 )
 
 ###########

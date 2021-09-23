@@ -101,6 +101,24 @@ constexpr int BR_foot_joint_3 = 29;
 
 }  // namespace MagnetoDoF
 
+namespace MagnetoADoF {
+
+constexpr int AL_coxa_joint = 0;
+constexpr int AL_femur_joint = 1;
+constexpr int AL_tibia_joint = 2;
+constexpr int AR_coxa_joint = 3;
+constexpr int AR_femur_joint = 4;
+constexpr int AR_tibia_joint = 5;
+constexpr int BL_coxa_joint = 6;
+constexpr int BL_femur_joint = 7;
+constexpr int BL_tibia_joint = 8;
+constexpr int BR_coxa_joint = 9;
+constexpr int BR_femur_joint = 10;
+constexpr int BR_tibia_joint = 11;
+
+}  // namespace MagnetoADoF
+
+
 namespace MagnetoAux {
 constexpr double servo_rate = 0.001;
 }

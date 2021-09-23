@@ -49,7 +49,7 @@ extern dd_LPSolverType dd_choiceRedcheckAlgorithm;  /* Redundancy Checking Algor
 extern dd_boolean dd_choiceLexicoPivotQ;    /* whether to use the lexicographic pivot */
 
    /* to be used to avoid creating temporary spaces for mytype */
-#define dd_almostzero  1.0E-7
+#define dd_almostzero  1.0E-5
 
 /* ---------- FUNCTIONS MEANT TO BE PUBLIC ---------- */
 
